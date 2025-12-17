@@ -473,29 +473,82 @@
             renderer.render(scene, camera);
         }
 function startSystem() {
-    // 1. Ẩn nút và phát nhạc
-    document.getElementById('btnStart').style.display = 'none';
-    bgMusic.play().catch(e => console.log(e));
+    // 1. Ẩn nút Start và phát nhạc
+    const btn = document.getElementById('btnStart');
+    if (btn) btn.style.display = 'none';
+    
+    bgMusic.play().catch(e => console.log("Audio play error:", e));
+    
+    // 2. Khởi tạo hiệu ứng 3D
     init3D();
 
-    // 2. Khai báo các phần tử video/canvas
-    const video = document.getElementsByClassName('input_video')[0];
-    const canvas = document.getElementById('camera-preview');
-    const ctx = canvas.getContext('2d');
+    // 3. Lấy các thành phần video và canvas
+    const videoElement = document.getElementsByClassName('input_video')[0];
+    const canvasElement = document.getElementById('camera-preview');
+    const canvasCtx = canvasElement.getContext('2d');
 
-    // 3. Khởi tạo Hands (di chuyển phần này vào trong hoặc để ngoài đều được)
-    // ... giữ nguyên phần hands.onResults ...
+    // 4. Cấu hình Mediapipe Hands
+    const hands = new Hands({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+    });
 
-    // 4. QUAN TRỌNG: Đưa đoạn này vào TRONG hàm startSystem
-    const cameraUtils = new Camera(video, {
+    hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    // 5. Xử lý kết quả nhận diện tay
+    hands.onResults((results) => {
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const lm = results.multiHandLandmarks[0];
+            handX = lm[9].x;
+
+            // Tính toán khoảng cách để nhận diện cử chỉ (Xòe, Nắm, Trái tim)
+            const tips = [8, 12, 16, 20];
+            const wrist = lm[0];
+            let openDist = 0;
+            tips.forEach(i => {
+                openDist += Math.hypot(lm[i].x - wrist.x, lm[i].y - wrist.y);
+            });
+            const avgDist = openDist / 4;
+
+            if (avgDist < 0.25) {
+                state = 'TREE'; // Nắm tay
+            } else {
+                state = 'EXPLODE'; // Xòe tay
+            }
+
+            // Nhận diện trái tim (nếu có 2 tay)
+            if (results.multiHandLandmarks.length === 2) {
+                const h1 = results.multiHandLandmarks[0];
+                const h2 = results.multiHandLandmarks[1];
+                const distIndex = Math.hypot(h1[8].x - h2[8].y, h1[8].y - h2[8].y);
+                if (distIndex < 0.15) state = 'HEART';
+            }
+        } else {
+            state = 'TREE'; // Mặc định khi không thấy tay
+        }
+        canvasCtx.restore();
+    });
+
+    // 6. KHỞI CHẠY CAMERA (Quan trọng: Phải nằm trong hàm này)
+    const camera = new Camera(videoElement, {
         onFrame: async () => {
-            await hands.send({image: video});
+            await hands.send({ image: videoElement });
         },
         width: 320,
         height: 240
     });
-    cameraUtils.start(); // Kích hoạt camera ngay khi nhấn nút
+    camera.start();
 }
-       
-          
-             
+
+// Bắt đầu vòng lặp render 3D
+animate();
