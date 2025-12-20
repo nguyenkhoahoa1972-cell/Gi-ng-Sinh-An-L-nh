@@ -44,16 +44,14 @@
     position: absolute; 
     top: 15px; 
     right: 15px;
-    width: 120px; 
-    height: 90px; 
-    border: 2px solid rgba(255,0,0,0.8); /* Làm viền đỏ rõ hơn một chút */
+    width: 160px; /* Tăng độ rộng khung lên một chút */
+    height: 120px; /* Tỉ lệ 4:3 chuẩn */
+    border: 2px solid #ff0000; 
     transform: scaleX(-1); 
-    opacity: 0.8; 
     border-radius: 8px;
     background-color: #000; 
     display: block;
-    /* Dòng cực kỳ quan trọng để ảnh không bị méo và lấp đầy khung */
-    object-fit: cover; 
+    object-fit: fill; /* Ép hình ảnh dãn vừa khít viền */
 }
 
         /* Vandiep */
@@ -499,9 +497,13 @@
             hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
 
             hands.onResults(results => {
-                // Vẽ camera preview (ô nhỏ)
-                ctx.clearRect(0,0,100,75); 
-                ctx.drawImage(results.image, 0, 0, 100, 75);
+                // Xóa và vẽ lại lấp đầy 100% canvas
+                ctx.save();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (results.image) {
+                ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+                }
+                ctx.restore();
 
                 // Nếu không thấy tay thì mặc định hiện cây thông
                 if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
@@ -543,7 +545,7 @@
             });
 
             const cameraUtils = new Camera(video, {
-                onFrame: async () => { await hands.send({image: video}); }, width: 320, height: 240
+                onFrame: async () => { await hands.send({image: video}); }, width: 640, height: 480
             });
             cameraUtils.start();
         }
