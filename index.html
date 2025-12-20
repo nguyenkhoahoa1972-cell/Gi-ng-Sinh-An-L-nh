@@ -44,11 +44,11 @@
     position: absolute; 
     top: 15px; 
     right: 15px;
-    width: 160px; /* Tăng độ rộng khung lên một chút */
-    height: 120px; /* Tỉ lệ 4:3 chuẩn */
-    border: 2px solid #ff0000; 
+    width: 240px; /* Tăng độ rộng khung lên một chút */
+    height: 180px; /* Tỉ lệ 4:3 chuẩn */
+    border: 3px solid #ff0000; 
     transform: scaleX(-1); 
-    border-radius: 8px;
+    border-radius: 12px;
     background-color: #000; 
     display: block;
     object-fit: fill; /* Ép hình ảnh dãn vừa khít viền */
@@ -490,8 +490,8 @@
             const ctx = canvas.getContext('2d');
 
             // Thiết lập kích thước vẽ chuẩn
-            canvas.width = 160;
-            canvas.height = 120;
+            canvas.width = 240;
+            canvas.height = 180;
             
             const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
             hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
@@ -501,7 +501,7 @@
                 ctx.save();
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.image) {
-                ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
                 }
                 ctx.restore();
 
