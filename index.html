@@ -41,11 +41,20 @@
 
         /* Camera Preview Vandiep */
         #camera-preview {
-            position: absolute; top: 15px; right: 15px;
-            width: 120px; height: 90px;
-            border: 2px solid rgba(255,0,0,0.5); 
-            transform: scaleX(-1); opacity: 0.6; border-radius: 8px;
-        }
+    position: absolute; 
+    top: 15px; 
+    right: 15px;
+    width: 120px; 
+    height: 90px; 
+    border: 2px solid rgba(255,0,0,0.8); /* Làm viền đỏ rõ hơn một chút */
+    transform: scaleX(-1); 
+    opacity: 0.8; 
+    border-radius: 8px;
+    background-color: #000; 
+    display: block;
+    /* Dòng cực kỳ quan trọng để ảnh không bị méo và lấp đầy khung */
+    object-fit: cover; 
+}
 
         /* Vandiep */
         #copyright {
@@ -482,6 +491,10 @@
             const canvas = document.getElementById('camera-preview');
             const ctx = canvas.getContext('2d');
 
+            // Thiết lập kích thước vẽ chuẩn
+            canvas.width = 160;
+            canvas.height = 120;
+            
             const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
             hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
 
